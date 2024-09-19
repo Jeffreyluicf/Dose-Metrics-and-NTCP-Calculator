@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- Head Section with Google Fonts and Styling -->
+    <!-- Head section with Google Fonts and styling -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dose Metrics and NTCP Calculator v15.0</title>
@@ -11,7 +11,7 @@
         /* General body styling */
         body {
             font-family: 'Roboto', sans-serif;
-            background-color: #ffffff;
+            background-color: #ffffff; /* Ensure the background is white */
             max-width: 800px;
             margin: 0 auto;
             padding: 20px;
@@ -21,15 +21,14 @@
         /* Header styling */
         h1 {
             font-family: 'Roboto Condensed', sans-serif;
-            font-size: 2em;
+            font-size: 2.2em;
             color: #2c3e50;
             text-align: center;
-            margin-bottom: 5px;
+            margin-bottom: 30px;
         }
-        /* Version styling */
         h1 span {
             font-size: 0.7em;
-            color: #888;
+            color: #888; /* Less contrast color */
         }
         /* Developer name */
         .developer-name {
@@ -74,7 +73,7 @@
         .checkbox-group {
             display: flex;
             flex-wrap: wrap;
-            gap: 12px;
+            gap: 15px;
             margin-top: 10px;
         }
         .checkbox-group label {
@@ -82,7 +81,6 @@
             align-items: center;
             cursor: pointer;
             font-weight: 500;
-            flex: 1 1 calc(50% - 10px);
         }
         .checkbox-group input[type="checkbox"] {
             margin-right: 8px;
@@ -159,9 +157,6 @@
             .input-group label {
                 margin-bottom: 5px;
             }
-            .checkbox-group label {
-                flex: 1 1 100%;
-            }
         }
     </style>
 </head>
@@ -234,7 +229,7 @@
         <!-- gEUD input -->
         <div id="geudInput" style="display: none;">
             <div class="input-group">
-                <label for="aValue">a value for gEUD calculation (gEUD = [Σ(V<sub>i</sub> × D<sub>i</sub><sup>a</sup>)]<sup>1/a</sup>):</label>
+                <label for="aValue">a value for gEUD calculation  (gEUD = [Σ(V<sub>i</sub> × D<sub>i</sub><sup>a</sup>)]<sup>1/a</sup>):</label>
                 <input type="number" id="aValue" step="0.1" value="1">
             </div>
         </div>
@@ -262,6 +257,8 @@
     <div id="copyStatus"></div>
 
     <script>
+        // Modified script to handle multiple Dx% and updated per your requests
+
         // Global variable to store results
         let globalResults = [];
 
@@ -473,7 +470,13 @@
                         }
                     }
                 } else {
-                    alert(`Structure "${structureName}" not found in file "${file.name}".`);
+                    // Structure not found, set metrics to '.'
+                    if (selectedMetrics.volume) result.volume = '.';
+                    if (selectedMetrics.dmean) result.dmean = '.';
+                    if (selectedMetrics.dx) result.dxList = xPercentList.map(() => '.');
+                    if (selectedMetrics.vx) result.vxList = xDoseList.map(() => '.');
+                    if (selectedMetrics.geud) result.geud = '.';
+                    if (selectedMetrics.ntcp) result.ntcp = '.';
                 }
 
                 results.push(result);
@@ -532,7 +535,7 @@
                 }
             }
 
-            return null;
+            return '.';
         }
 
         // Function to calculate percent volume for each dose point
@@ -644,9 +647,7 @@
 
             // A&S formula 7.1.26
             const t = 1.0 / (1.0 + p * x);
-            const y = 1.0 - (((((
-                a5 * t + a4) * t + a3) * t + a2) * t + a1) *
-                t * Math.exp(-x * x));
+            const y = 1.0 - (((((a5 * t + a4) * t + a3) * t + a2) * t + a1) * t * Math.exp(-x * x));
 
             return sign * y;
         }
