@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Head Section with Google Fonts and Styling -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dose Metrics and NTCP Calculator v15.0</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&family=Roboto+Condensed:wght@700&display=swap" rel="stylesheet">
+    <style>
+        /* General body styling */
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #ffffff;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+            line-height: 1.6;
+        }
+        /* Header styling */
+        h1 {
+            font-family: 'Roboto Condensed', sans-serif;
+            font-size: 2em;
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 5px;
+        }
+        /* Version styling */
+        h1 span {
+            font-size: 0.7em;
+            color: #888;
+        }
+        /* Developer name */
+        .developer-name {
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 30px;
+        }
+        /* Input sections styling */
+        .input-group {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .input-group label {
+            flex: 1 1 200px;
+            font-weight: 500;
+        }
+        .input-group input[type="text"],
+        .input-group input[type="number"],
+        .input-group select {
+            flex: 1 1 calc(100% - 210px);
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1em;
+        }
+        .input-group input[type="file"] {
+            flex: 1 1 100%;
+            margin-top: 5px;
+            font-size: 1em;
+        }
+        /* Dose inputs and metric inputs sections */
+        .dose-inputs, .metric-inputs {
+            display: none;
+            background-color: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        /* Checkbox group styling */
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 10px;
+        }
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            font-weight: 500;
+            flex: 1 1 calc(50% - 10px);
+        }
+        .checkbox-group input[type="checkbox"] {
+            margin-right: 8px;
+            transform: scale(1.2);
+        }
+        /* Buttons styling */
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 1em;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        /* Small buttons */
+        .small-button {
+            padding: 6px 12px;
+            font-size: 0.9em;
+            margin-top: 0;
+            margin-left: 5px;
+        }
+        /* Table styling */
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 25px;
+            font-size: 0.95em;
+        }
+        th, td {
+            border: 1px solid #bdc3c7;
+            padding: 12px 15px;
+            text-align: left;
+        }
+        th {
+            background-color: #2c3e50;
+            color: white;
+            font-weight: 500;
+        }
+        tr:nth-child(even) {
+            background-color: #ecf0f1;
+        }
+        /* Copy button and status */
+        #copyButton {
+            margin-top: 20px;
+            display: none;
+            background-color: #27ae60;
+        }
+        #copyButton:hover {
+            background-color: #1e8449;
+        }
+        #copyStatus {
+            margin-top: 10px;
+            color: #27ae60;
+            font-weight: 500;
+        }
+        /* Responsive adjustments */
+        @media (max-width: 600px) {
+            .input-group {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .input-group label, 
+            .input-group input[type="text"], 
+            .input-group input[type="number"], 
+            .input-group select {
+                flex: 1 1 100%;
+            }
+            .input-group label {
+                margin-bottom: 5px;
+            }
+            .checkbox-group label {
+                flex: 1 1 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Dose Metrics and NTCP Calculator <span>v15.0</span></h1>
+    <p class="developer-name">Developed by Jeffrey Lui</p>
+    <!-- File input section -->
+    <div class="input-group">
+        <label for="fileInput">Select DVH Files:</label>
+        <input type="file" id="fileInput" accept=".txt" multiple>
+    </div>
+    <!-- Structure name input -->
+    <div class="input-group">
+        <label for="structureName">Structure Name:</label>
+        <input type="text" id="structureName">
+    </div>
+    <!-- Dose type selection -->
+    <div class="input-group">
+        <label for="doseType">Dose Type:</label>
+        <select id="doseType" onchange="toggleDoseInputs()">
+            <option value="physical">Physical Dose</option>
+            <option value="bed">BED</option>
+            <option value="eqd2">EQD2</option>
+        </select>
+    </div>
+    <!-- Dose inputs (hidden by default) -->
+    <div id="doseInputs" class="dose-inputs">
+        <div class="input-group">
+            <label for="alphaBeta">Alpha/Beta Ratio (Gy):</label>
+            <input type="number" id="alphaBeta" step="0.1" value="3">
+        </div>
+        <div class="input-group">
+            <label for="fractionNumber">Number of Fractions:</label>
+            <input type="number" id="fractionNumber" step="1" value="30">
+        </div>
+    </div>
+    <!-- Dose metrics selection -->
+    <div class="input-group">
+        <label>Dose Metrics:</label>
+        <div class="checkbox-group">
+            <label><input type="checkbox" id="volumeCheck" value="volume"> Structure Volume [cm³]</label>
+            <label><input type="checkbox" id="dmeanCheck" value="dmean" onchange="toggleMetricInputs()"> Dmean [cGy]</label>
+            <label><input type="checkbox" id="dxCheck" value="dx" onchange="toggleMetricInputs()"> Dx% [cGy]</label>
+            <label><input type="checkbox" id="vxCheck" value="vx" onchange="toggleMetricInputs()"> V x cGy [%]</label>
+            <label><input type="checkbox" id="geudCheck" value="geud" onchange="toggleMetricInputs()"> gEUD [cGy]</label>
+        </div>
+    </div>
+    <!-- Metric inputs (hidden by default) -->
+    <div id="metricInputs" class="metric-inputs">
+        <!-- Dx% inputs -->
+        <div id="dxInput" style="display: none;">
+            <div id="dxPercentContainer">
+                <div class="input-group">
+                    <label>x% for Dx% calculation:</label>
+                    <input type="number" class="xPercentInput" min="0" max="100" step="0.1" value="30">
+                    <button type="button" class="small-button" onclick="addDxInput()">Add Another x%</button>
+                </div>
+            </div>
+        </div>
+        <!-- Vx inputs -->
+        <div id="vxInput" style="display: none;">
+            <div id="vxDoseContainer">
+                <div class="input-group">
+                    <label>x cGy for Vx cGy calculation:</label>
+                    <input type="number" class="xDoseInput" min="0" step="1" value="6000">
+                    <button type="button" class="small-button" onclick="addVxInput()">Add Another x cGy</button>
+                </div>
+            </div>
+        </div>
+        <!-- gEUD input -->
+        <div id="geudInput" style="display: none;">
+            <div class="input-group">
+                <label for="aValue">a value for gEUD calculation (gEUD = [Σ(V<sub>i</sub> × D<sub>i</sub><sup>a</sup>)]<sup>1/a</sup>):</label>
+                <input type="number" id="aValue" step="0.1" value="1">
+            </div>
+        </div>
+        <!-- NTCP input -->
+        <div id="ntcpInput" style="display: none;">
+            <label><input type="checkbox" id="ntcpCheck" value="ntcp" onchange="toggleNTCPInputs()"> Calculate NTCP by LKB model</label>
+            <div id="ntcpParams" style="display: none;">
+                <div class="input-group">
+                    <label for="d50">D50 [cGy]:</label>
+                    <input type="number" id="d50" step="1" value="5000">
+                </div>
+                <div class="input-group">
+                    <label for="m">m:</label>
+                    <input type="number" id="m" step="0.01" value="0.2">
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Process button -->
+    <button onclick="processFiles()">Process Files and Calculate</button>
+    <!-- Results display area -->
+    <div id="result"></div>
+    <!-- Copy table button (hidden by default) -->
+    <button id="copyButton" onclick="copyTable()">Copy Table</button>
+    <div id="copyStatus"></div>
+
+    <script>
+        // Global variable to store results
+        let globalResults = [];
+
+        // Function to toggle dose inputs based on dose type selection
+        function toggleDoseInputs() {
+            const doseType = document.getElementById('doseType').value;
+            const doseInputs = document.getElementById('doseInputs');
+            doseInputs.style.display = doseType === 'physical' ? 'none' : 'block';
+        }
+
+        // Function to toggle metric inputs based on checkbox selections
+        function toggleMetricInputs() {
+            const metricInputs = document.getElementById('metricInputs');
+            const dxInput = document.getElementById('dxInput');
+            const vxInput = document.getElementById('vxInput');
+            const geudInput = document.getElementById('geudInput');
+            const ntcpInput = document.getElementById('ntcpInput');
+
+            const dxChecked = document.getElementById('dxCheck').checked;
+            const vxChecked = document.getElementById('vxCheck').checked;
+            const geudChecked = document.getElementById('geudCheck').checked;
+
+            metricInputs.style.display = (dxChecked || vxChecked || geudChecked) ? 'block' : 'none';
+            dxInput.style.display = dxChecked ? 'block' : 'none';
+            vxInput.style.display = vxChecked ? 'block' : 'none';
+            geudInput.style.display = geudChecked ? 'block' : 'none';
+            ntcpInput.style.display = geudChecked ? 'block' : 'none';
+        }
+
+        // Function to toggle NTCP inputs
+        function toggleNTCPInputs() {
+            const ntcpParams = document.getElementById('ntcpParams');
+            const ntcpChecked = document.getElementById('ntcpCheck').checked;
+            ntcpParams.style.display = ntcpChecked ? 'block' : 'none';
+        }
+
+        // Function to add another x% input for Dx%
+        function addDxInput() {
+            const dxPercentContainer = document.getElementById('dxPercentContainer');
+            const inputGroup = document.createElement('div');
+            inputGroup.className = 'input-group';
+
+            const dummyLabel = document.createElement('label');
+            dummyLabel.innerHTML = '';
+            inputGroup.appendChild(dummyLabel);
+
+            const input = document.createElement('input');
+            input.type = 'number';
+            input.className = 'xPercentInput';
+            input.min = '0';
+            input.max = '100';
+            input.step = '0.1';
+            input.value = '30';
+            inputGroup.appendChild(input);
+
+            const removeButton = document.createElement('button');
+            removeButton.type = 'button';
+            removeButton.className = 'small-button';
+            removeButton.style.backgroundColor = '#e74c3c';
+            removeButton.innerText = 'Remove';
+            removeButton.onclick = function() {
+                dxPercentContainer.removeChild(inputGroup);
+            };
+            inputGroup.appendChild(removeButton);
+
+            dxPercentContainer.appendChild(inputGroup);
+        }
+
+        // Function to add another xDose input for Vx
+        function addVxInput() {
+            const vxDoseContainer = document.getElementById('vxDoseContainer');
+            const inputGroup = document.createElement('div');
+            inputGroup.className = 'input-group';
+
+            const dummyLabel = document.createElement('label');
+            dummyLabel.innerHTML = '';
+            inputGroup.appendChild(dummyLabel);
+
+            const input = document.createElement('input');
+            input.type = 'number';
+            input.className = 'xDoseInput';
+            input.min = '0';
+            input.step = '1';
+            input.value = '6000';
+            inputGroup.appendChild(input);
+
+            const removeButton = document.createElement('button');
+            removeButton.type = 'button';
+            removeButton.className = 'small-button';
+            removeButton.style.backgroundColor = '#e74c3c';
+            removeButton.innerText = 'Remove';
+            removeButton.onclick = function() {
+                vxDoseContainer.removeChild(inputGroup);
+            };
+            inputGroup.appendChild(removeButton);
+
+            vxDoseContainer.appendChild(inputGroup);
+        }
+
+        // Main function to process files and calculate metrics
+        async function processFiles() {
+            const files = document.getElementById('fileInput').files;
+            const structureName = document.getElementById('structureName').value.trim();
+            const doseType = document.getElementById('doseType').value;
+            const alphaBeta = parseFloat(document.getElementById('alphaBeta').value);
+            const fractionNumber = parseInt(document.getElementById('fractionNumber').value);
+
+            // Validate inputs
+            if (files.length === 0) {
+                alert('Please select at least one DVH file.');
+                return;
+            }
+            if (!structureName) {
+                alert('Please enter a structure name.');
+                return;
+            }
+
+            // Get selected metrics
+            const selectedMetrics = {
+                volume: document.getElementById('volumeCheck').checked,
+                dmean: document.getElementById('dmeanCheck').checked,
+                dx: document.getElementById('dxCheck').checked,
+                vx: document.getElementById('vxCheck').checked,
+                geud: document.getElementById('geudCheck').checked,
+                ntcp: document.getElementById('ntcpCheck').checked
+            };
+
+            // Ensure at least one metric is selected
+            if (!Object.values(selectedMetrics).some(val => val)) {
+                alert('Please select at least one dose metric.');
+                return;
+            }
+
+            // Get metric-specific parameters
+            let xPercentList = [], xDoseList = [], aValue, d50, m;
+            if (selectedMetrics.dx) {
+                const xPercentInputs = document.getElementsByClassName('xPercentInput');
+                for (let input of xPercentInputs) {
+                    const value = parseFloat(input.value);
+                    if (isNaN(value) || value < 0 || value > 100) {
+                        alert('Please enter valid x% values between 0 and 100 for Dx% calculation.');
+                        return;
+                    }
+                    xPercentList.push(value);
+                }
+            }
+            if (selectedMetrics.vx) {
+                const xDoseInputs = document.getElementsByClassName('xDoseInput');
+                for (let input of xDoseInputs) {
+                    const value = parseFloat(input.value);
+                    if (isNaN(value) || value < 0) {
+                        alert('Please enter valid x cGy values (>= 0) for Vx cGy calculation.');
+                        return;
+                    }
+                    xDoseList.push(value);
+                }
+            }
+            if (selectedMetrics.geud) {
+                aValue = parseFloat(document.getElementById('aValue').value);
+            }
+            if (selectedMetrics.ntcp) {
+                d50 = parseFloat(document.getElementById('d50').value);
+                m = parseFloat(document.getElementById('m').value);
+            }
+
+            let results = [];
+
+            // Process each file
+            for (let file of files) {
+                const fileContent = await readFile(file);
+                const data = extractData(fileContent, structureName);
+                let result = {
+                    fileName: file.name.replace('.txt', '')
+                };
+
+                if (data.length > 0) {
+                    calculatePercentVolume(data);
+                    if (doseType === 'bed') {
+                        calculateBED(data, alphaBeta, fractionNumber);
+                    } else if (doseType === 'eqd2') {
+                        calculateEQD2(data, alphaBeta, fractionNumber);
+                    }
+
+                    // Calculate selected metrics
+                    if (selectedMetrics.volume) {
+                        result.volume = extractVolume(fileContent, structureName);
+                    }
+                    if (selectedMetrics.dmean) {
+                        result.dmean = calculateMeanDose(data, doseType);
+                    }
+                    if (selectedMetrics.dx) {
+                        result.dxList = [];
+                        for (let xPercent of xPercentList) {
+                            const dxValue = calculateDx(data, xPercent, doseType);
+                            result.dxList.push(dxValue);
+                        }
+                    }
+                    if (selectedMetrics.vx) {
+                        result.vxList = [];
+                        for (let xDose of xDoseList) {
+                            const vxValue = calculateVx(data, xDose, doseType);
+                            result.vxList.push(vxValue);
+                        }
+                    }
+                    if (selectedMetrics.geud) {
+                        result.geud = calculateGEUD(data, aValue, doseType);
+                        if (selectedMetrics.ntcp) {
+                            result.ntcp = calculateNTCP(result.geud, d50, m);
+                        }
+                    }
+                } else {
+                    alert(`Structure "${structureName}" not found in file "${file.name}".`);
+                }
+
+                results.push(result);
+            }
+
+            globalResults = results;
+            displayResults(results, selectedMetrics, doseType, xPercentList, xDoseList, aValue, structureName);
+        }
+
+        // Function to read file contents
+        function readFile(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = e => resolve(e.target.result);
+                reader.onerror = reject;
+                reader.readAsText(file);
+            });
+        }
+
+        // Function to extract DVH data from file content
+        function extractData(fileContent, structureName) {
+            const lines = fileContent.split('\n');
+            let extracting = false;
+            let data = [];
+            let headerFound = false;
+
+            for (let line of lines) {
+                if (line.trim().startsWith('Structure: ' + structureName)) {
+                    extracting = true;
+                } else if (extracting && !headerFound && line.trim().startsWith('Dose [cGy]')) {
+                    headerFound = true;
+                    data.push(['Dose [cGy]', 'Relative dose [%]', 'dVolume / dDose [cm³ / cGy]', '% Volume']);
+                } else if (extracting && headerFound) {
+                    const values = line.trim().split(/\s+/);
+                    if (values.length >= 3) {
+                        data.push(values);
+                    } else if (line.trim() === '') {
+                        break;
+                    }
+                }
+            }
+
+            return data;
+        }
+
+        // Function to extract structure volume from file content
+        function extractVolume(fileContent, structureName) {
+            const lines = fileContent.split('\n');
+            let structureFound = false;
+
+            for (let line of lines) {
+                if (line.trim().startsWith('Structure: ' + structureName)) {
+                    structureFound = true;
+                } else if (structureFound && line.trim().startsWith('Volume [cm³]:')) {
+                    return parseFloat(line.split(':')[1].trim());
+                }
+            }
+
+            return null;
+        }
+
+        // Function to calculate percent volume for each dose point
+        function calculatePercentVolume(data) {
+            let sumVolume = 0;
+            for (let i = 1; i < data.length; i++) {
+                sumVolume += parseFloat(data[i][2]);
+            }
+
+            for (let i = 1; i < data.length; i++) {
+                const percentVolume = (parseFloat(data[i][2]) / sumVolume) * 100;
+                data[i][3] = percentVolume;
+            }
+        }
+
+        // Function to calculate BED (Biologically Effective Dose)
+        function calculateBED(data, alphaBeta, fractionNumber) {
+            for (let i = 1; i < data.length; i++) {
+                const physicalDose = parseFloat(data[i][0]);
+                const dosePerFraction = physicalDose / fractionNumber;
+                const bed = physicalDose * (1 + dosePerFraction / (alphaBeta * 100));
+                data[i][4] = bed;
+            }
+        }
+
+        // Function to calculate EQD2 (Equivalent Dose in 2 Gy fractions)
+        function calculateEQD2(data, alphaBeta, fractionNumber) {
+            for (let i = 1; i < data.length; i++) {
+                const physicalDose = parseFloat(data[i][0]);
+                const dosePerFraction = physicalDose / fractionNumber;
+                const alphaBetaCGy = alphaBeta * 100;
+                const eqd2 = physicalDose * (1 + dosePerFraction / alphaBetaCGy) / (1 + 200 / alphaBetaCGy);
+                data[i][4] = eqd2;
+            }
+        }
+
+        // Function to calculate mean dose
+        function calculateMeanDose(data, doseType) {
+            let meanDose = 0;
+            for (let i = 1; i < data.length; i++) {
+                const dose = parseFloat(data[i][doseType === 'physical' ? 0 : 4]);
+                const percentVolume = parseFloat(data[i][3]);
+                meanDose += dose * (percentVolume / 100);
+            }
+            return meanDose.toFixed(2);
+        }
+
+        // Function to calculate Dx (dose to x% volume)
+        function calculateDx(data, xPercent, doseType) {
+            let cumulativeVolume = 0;
+            for (let i = data.length - 1; i > 0; i--) {
+                cumulativeVolume += parseFloat(data[i][3]);
+                if (cumulativeVolume >= xPercent) {
+                    return parseFloat(data[i][doseType === 'physical' ? 0 : 4]).toFixed(2);
+                }
+            }
+            return ".";
+        }
+
+        // Function to calculate Vx (volume receiving x dose)
+        function calculateVx(data, xDose, doseType) {
+            let cumulativeVolume = 0;
+            for (let i = data.length - 1; i > 0; i--) {
+                if (parseFloat(data[i][doseType === 'physical' ? 0 : 4]) >= xDose) {
+                    cumulativeVolume += parseFloat(data[i][3]);
+                } else {
+                    break;
+                }
+            }
+            return cumulativeVolume.toFixed(2);
+        }
+
+        // Function to calculate gEUD (generalized Equivalent Uniform Dose)
+        function calculateGEUD(data, a, doseType) {
+            let sum = 0;
+            for (let i = 1; i < data.length; i++) {
+                const dose = parseFloat(data[i][doseType === 'physical' ? 0 : 4]);
+                const percentVolume = parseFloat(data[i][3]);
+                sum += (percentVolume / 100) * Math.pow(dose, a);
+            }
+            return Math.pow(sum, 1 / a).toFixed(2);
+        }
+
+        // Function to calculate NTCP using the LKB model
+        function calculateNTCP(gEUD, D50, m) {
+            // Calculate t value
+            const t = (gEUD - D50) / (m * D50);
+
+            // Calculate NTCP using the cumulative distribution function of a standard normal distribution
+            const ntcp = 0.5 * (1 + erf(t / Math.sqrt(2)));
+
+            // Return NTCP as a percentage
+            return (ntcp * 100).toFixed(2);
+        }
+
+        // Error function (erf) implementation
+        function erf(x) {
+            // Save the sign of x
+            const sign = (x >= 0) ? 1 : -1;
+            x = Math.abs(x);
+
+            // Constants
+            const a1 = 0.254829592;
+            const a2 = -0.284496736;
+            const a3 = 1.421413741;
+            const a4 = -1.453152027;
+            const a5 = 1.061405429;
+            const p = 0.3275911;
+
+            // A&S formula 7.1.26
+            const t = 1.0 / (1.0 + p * x);
+            const y = 1.0 - (((((
+                a5 * t + a4) * t + a3) * t + a2) * t + a1) *
+                t * Math.exp(-x * x));
+
+            return sign * y;
+        }
+
+        // Function to display results in a table
+        function displayResults(results, selectedMetrics, doseType, xPercentList, xDoseList, aValue, structureName) {
+            const resultDiv = document.getElementById('result');
+            let doseTypeLabel = doseType === 'physical' ? '' : (doseType === 'bed' ? 'BED ' : 'EQD2 ');
+
+            let resultHtml = '<table>';
+            resultHtml += '<tr><th>File Name</th>';
+
+            if (selectedMetrics.volume) resultHtml += `<th>${structureName} Volume [cm³]</th>`;
+            if (selectedMetrics.dmean) resultHtml += `<th>${structureName} ${doseTypeLabel}Mean Dose [cGy]</th>`;
+            if (selectedMetrics.dx) {
+                for (let xPercent of xPercentList) {
+                    resultHtml += `<th>${structureName} ${doseTypeLabel}D${xPercent}% [cGy]</th>`;
+                }
+            }
+            if (selectedMetrics.vx) {
+                for (let xDose of xDoseList) {
+                    resultHtml += `<th>${structureName} ${doseTypeLabel}V${xDose} cGy [%]</th>`;
+                }
+            }
+            if (selectedMetrics.geud) resultHtml += `<th>${structureName} ${doseTypeLabel}gEUD (a=${aValue}) [cGy]</th>`;
+            if (selectedMetrics.ntcp) resultHtml += `<th>${structureName} ${doseTypeLabel}NTCP [%] by LKB model</th>`;
+
+            resultHtml += '</tr>';
+
+            for (let result of results) {
+                resultHtml += `<tr><td>${result.fileName}</td>`;
+                if (selectedMetrics.volume) resultHtml += `<td>${result.volume || '.'}</td>`;
+                if (selectedMetrics.dmean) resultHtml += `<td>${result.dmean || '.'}</td>`;
+                if (selectedMetrics.dx) {
+                    for (let dxValue of result.dxList) {
+                        resultHtml += `<td>${dxValue || '.'}</td>`;
+                    }
+                }
+                if (selectedMetrics.vx) {
+                    for (let vxValue of result.vxList) {
+                        resultHtml += `<td>${vxValue || '.'}</td>`;
+                    }
+                }
+                if (selectedMetrics.geud) resultHtml += `<td>${result.geud || '.'}</td>`;
+                if (selectedMetrics.ntcp) resultHtml += `<td>${result.ntcp || '.'}</td>`;
+                resultHtml += '</tr>';
+            }
+            resultHtml += '</table>';
+
+            resultDiv.innerHTML = resultHtml;
+            document.getElementById('copyButton').style.display = 'block';
+        }
+
+        // Function to copy the results table to clipboard
+        function copyTable() {
+            const table = document.querySelector('table');
+            const range = document.createRange();
+            range.selectNode(table);
+            window.getSelection().removeAllRanges();
+            window.getSelection().addRange(range);
+
+            try {
+                document.execCommand('copy');
+                document.getElementById('copyStatus').textContent = 'Table copied to clipboard!';
+                setTimeout(() => {
+                    document.getElementById('copyStatus').textContent = '';
+                }, 3000);
+            } catch (err) {
+                console.error('Unable to copy', err);
+                document.getElementById('copyStatus').textContent = 'Failed to copy. Please try again.';
+            }
+
+            window.getSelection().removeAllRanges();
+        }
+    </script>
+</body>
+</html>
